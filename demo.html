@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TagInputBox デモ</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: sans-serif; padding: 40px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 24px; color: #333; }
+
+    .tag-input-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 8px 0;
+    }
+    .tag-input-label {
+      min-width: 80px;
+      padding-top: 6px;
+      font-size: 14px;
+      color: #333;
+      white-space: nowrap;
+    }
+    .tag-input-wrapper {
+      position: relative;
+      flex: 1;
+      max-width: 500px;
+    }
+    .tag-input-box {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 4px;
+      min-height: 36px;
+      padding: 4px 8px;
+      border: 1px solid #aaa;
+      border-radius: 3px;
+      background: #fff;
+      cursor: text;
+      font-size: 14px;
+    }
+    .tag-input-box.focused { border-color: #4a90d9; box-shadow: 0 0 0 2px rgba(74,144,217,0.2); }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 2px 6px;
+      background: #4a90d9;
+      color: #fff;
+      border-radius: 3px;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .tag-remove {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      border: none;
+      background: transparent;
+      color: #fff;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 2px;
+    }
+    .tag-remove:hover { background: rgba(0,0,0,0.2); }
+    .tag-input-field {
+      flex: 1;
+      min-width: 60px;
+      border: none;
+      outline: none;
+      padding: 2px 0;
+      font-size: 14px;
+      background: transparent;
+    }
+    .tag-dropdown {
+      position: absolute;
+      top: calc(100% + 2px);
+      left: 0; right: 0;
+      margin: 0; padding: 0;
+      list-style: none;
+      background: #fff;
+      border: 1px solid #aaa;
+      border-radius: 3px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      z-index: 1000;
+      max-height: 240px;
+      overflow-y: auto;
+      display: none;
+    }
+    .tag-dropdown.open { display: block; }
+    .tag-dropdown-item {
+      padding: 8px 12px;
+      font-size: 14px;
+      color: #333;
+      cursor: pointer;
+    }
+    .tag-dropdown-item:hover,
+    .tag-dropdown-item.focused { background: #4a90d9; color: #fff; }
+
+    .demo-card {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 20px;
+      max-width: 600px;
+    }
+  </style>
+</head>
+<body>
+  <h1>TagInputBox デモ</h1>
+  <div class="demo-card">
+    <div id="advertiser-row"></div>
+    <div id="ad-row" style="margin-top:12px"></div>
+  </div>
+
+  <script>
+    const ADVERTISERS = [
+      { id: 3,  name: "TSCY" },
+      { id: 23, name: "TS協業" },
+      { id: 32, name: "トウル一副業LP" },
+      { id: 45, name: "サンプル広告主A" },
+      { id: 67, name: "サンプル広告主B" },
+    ];
+
+    const ADS = [
+      { id: 1, name: "広告A" },
+      { id: 2, name: "広告B" },
+      { id: 3, name: "広告C" },
+    ];
+
+    function createTagInput(container, label, options, initialSelected = []) {
+      const state = { selected: [...initialSelected], inputValue: "", focusedIndex: -1, open: false };
+
+      const row = document.createElement("div");
+      row.className = "tag-input-row";
+
+      const lbl = document.createElement("label");
+      lbl.className = "tag-input-label";
+      lbl.textContent = label;
+
+      const wrapper = document.createElement("div");
+      wrapper.className = "tag-input-wrapper";
+
+      const box = document.createElement("div");
+      box.className = "tag-input-box";
+
+      const input = document.createElement("input");
+      input.className = "tag-input-field";
+      input.placeholder = "検索...";
+
+      const dropdown = document.createElement("ul");
+      dropdown.className = "tag-dropdown";
+
+      wrapper.appendChild(box);
+      wrapper.appendChild(dropdown);
+      row.appendChild(lbl);
+      row.appendChild(wrapper);
+      container.appendChild(row);
+
+      function getFiltered() {
+        const ids = new Set(state.selected.map(s => s.id));
+        return options.filter(o =>
+          !ids.has(o.id) &&
+          `${o.id}:${o.name}`.toLowerCase().includes(state.inputValue.toLowerCase())
+        );
+      }
+
+      function render() {
+        box.innerHTML = "";
+        state.selected.forEach(opt => {
+          const tag = document.createElement("span");
+          tag.className = "tag";
+          tag.innerHTML = `<span>${opt.id}:${opt.name}</span>`;
+          const btn = document.createElement("button");
+          btn.className = "tag-remove";
+          btn.textContent = "×";
+          btn.addEventListener("mousedown", e => {
+            e.preventDefault();
+            state.selected = state.selected.filter(s => s.id !== opt.id);
+            render();
+          });
+          tag.appendChild(btn);
+          box.appendChild(tag);
+        });
+        box.appendChild(input);
+
+        const filtered = getFiltered();
+        dropdown.innerHTML = "";
+        filtered.forEach((opt, idx) => {
+          const li = document.createElement("li");
+          li.className = "tag-dropdown-item" + (idx === state.focusedIndex ? " focused" : "");
+          li.textContent = `${opt.id}:${opt.name}`;
+          li.addEventListener("mousedown", e => {
+            e.preventDefault();
+            state.selected.push(opt);
+            state.inputValue = "";
+            state.focusedIndex = -1;
+            input.value = "";
+            render();
+            input.focus();
+          });
+          li.addEventListener("mouseenter", () => {
+            state.focusedIndex = idx;
+            render();
+          });
+          dropdown.appendChild(li);
+        });
+
+        if (state.open && filtered.length > 0) {
+          dropdown.classList.add("open");
+        } else {
+          dropdown.classList.remove("open");
+        }
+      }
+
+      input.addEventListener("input", () => {
+        state.inputValue = input.value;
+        state.focusedIndex = -1;
+        state.open = true;
+        render();
+      });
+
+      input.addEventListener("focus", () => { state.open = true; render(); });
+
+      input.addEventListener("keydown", e => {
+        const filtered = getFiltered();
+        if (e.key === "ArrowDown") {
+          e.preventDefault();
+          state.focusedIndex = Math.min(state.focusedIndex + 1, filtered.length - 1);
+          state.open = true;
+        } else if (e.key === "ArrowUp") {
+          e.preventDefault();
+          state.focusedIndex = Math.max(state.focusedIndex - 1, 0);
+        } else if (e.key === "Enter" && state.focusedIndex >= 0) {
+          e.preventDefault();
+          state.selected.push(filtered[state.focusedIndex]);
+          state.inputValue = "";
+          state.focusedIndex = -1;
+          input.value = "";
+          state.open = false;
+        } else if (e.key === "Escape") {
+          state.open = false;
+          state.focusedIndex = -1;
+        } else if (e.key === "Backspace" && state.inputValue === "" && state.selected.length > 0) {
+          state.selected.pop();
+        }
+        render();
+      });
+
+      box.addEventListener("click", () => { input.focus(); state.open = true; render(); });
+
+      document.addEventListener("mousedown", e => {
+        if (!wrapper.contains(e.target)) {
+          state.open = false;
+          state.focusedIndex = -1;
+          render();
+        }
+      });
+
+      render();
+    }
+
+    createTagInput(
+      document.getElementById("advertiser-row"),
+      "広告主",
+      ADVERTISERS,
+      [{ id: 32, name: "トウル一副業LP" }]
+    );
+
+    createTagInput(
+      document.getElementById("ad-row"),
+      "広告",
+      ADS
+    );
+  </script>
+</body>
+</html>
