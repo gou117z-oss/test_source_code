@@ -14,6 +14,7 @@
     .tag-input-wrapper {
       position: relative;
       min-width: 300px;
+      z-index: 9999;
     }
     .tag-input-box {
       display: flex;
@@ -71,16 +72,14 @@
       background: transparent;
     }
     .tag-dropdown {
-      position: absolute;
-      top: calc(100% + 2px);
-      left: 0; right: 0;
+      position: fixed;
       margin: 0; padding: 0;
       list-style: none;
       background: #fff;
       border: 1px solid #aaa;
       border-radius: 3px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-      z-index: 100;
+      z-index: 50;
       max-height: 240px;
       overflow-y: auto;
       display: none;
@@ -237,7 +236,19 @@
         });
 
         dropdown.classList.toggle("open", state.open && filtered.length > 0);
+        if (state.open && filtered.length > 0) positionDropdown();
         syncSelect();
+      }
+
+      function positionDropdown() {
+        const rect = box.getBoundingClientRect();
+        dropdown.style.top   = (rect.bottom + 2) + "px";
+        dropdown.style.left  = rect.left + "px";
+        dropdown.style.width = rect.width + "px";
+      }
+
+      window.addEventListener("scroll", positionDropdown, true);
+      window.addEventListener("resize", positionDropdown);
 
       input.addEventListener("input", () => {
         state.inputValue = input.value;
