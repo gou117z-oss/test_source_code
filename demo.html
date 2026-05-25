@@ -150,6 +150,7 @@
       const input = document.createElement("input");
       input.className = "tag-input-field";
       input.placeholder = "検索...";
+      box.appendChild(input);
 
       const dropdown = document.createElement("ul");
       dropdown.className = "tag-dropdown";
@@ -169,7 +170,8 @@
       }
 
       function render() {
-        box.innerHTML = "";
+        // inputは削除せずタグ要素だけ差し替える
+        Array.from(box.querySelectorAll(".tag")).forEach(el => el.remove());
         state.selected.forEach(opt => {
           const tag = document.createElement("span");
           tag.className = "tag";
@@ -183,9 +185,8 @@
             render();
           });
           tag.appendChild(btn);
-          box.appendChild(tag);
+          box.insertBefore(tag, input);
         });
-        box.appendChild(input);
 
         const filtered = getFiltered();
         dropdown.innerHTML = "";
