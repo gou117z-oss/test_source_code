@@ -92,6 +92,8 @@
       font-size: 14px;
       color: #333;
       cursor: pointer;
+      pointer-events: auto;
+      user-select: none;
     }
     .tag-dropdown-item:hover,
     .tag-dropdown-item.focused { background: #4a90d9; color: #fff; }
@@ -217,10 +219,8 @@
           const li = document.createElement("li");
           li.className = "tag-dropdown-item" + (idx === state.focusedIndex ? " focused" : "");
           li.textContent = opt.text;
-          li.addEventListener("mousedown", e => {
-            e.preventDefault(); // input のフォーカスを維持するだけ（DOM は変更しない）
-          });
-          li.addEventListener("click", () => {
+          li.addEventListener("pointerdown", e => {
+            e.preventDefault(); // フォーカス移動を防ぎ、後続の mouse イベント生成も抑制
             state.selected = [opt];
             state.inputValue = "";
             state.focusedIndex = -1;
@@ -248,7 +248,11 @@
         render();
       });
 
-      input.addEventListener("focus", () => { state.open = true; render(); });
+      input.addEventListener("focus", () => {
+        if (state.selected.length > 0) return; // 選択済みのとき再オープンしない
+        state.open = true;
+        render();
+      });
 
       input.addEventListener("keydown", e => {
         const filtered = getFiltered();
@@ -283,7 +287,7 @@
         }
       });
 
-      document.addEventListener("mousedown", e => {
+      document.addEventListener("pointerdown", e => {
         const path = e.composedPath ? e.composedPath() : [];
         const inside = path.length > 0 ? path.includes(wrapper) : wrapper.contains(e.target);
         if (!inside) {
