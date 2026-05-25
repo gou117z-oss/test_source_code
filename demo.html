@@ -162,7 +162,7 @@
         hiddenSelect = document.createElement("select");
         hiddenSelect.id = selectConfig.id;
         hiddenSelect.name = selectConfig.name;
-        hiddenSelect.multiple = true;
+
         hiddenSelect.style.display = "none";
         wrapper.appendChild(hiddenSelect);
       }
@@ -220,7 +220,7 @@
           li.textContent = `${opt.id}:${opt.name}`;
           li.addEventListener("mousedown", e => {
             e.preventDefault();
-            state.selected.push(opt);
+            state.selected = [opt];
             state.inputValue = "";
             state.focusedIndex = -1;
             input.value = "";
@@ -263,7 +263,7 @@
           state.focusedIndex = Math.max(state.focusedIndex - 1, 0);
         } else if (e.key === "Enter" && state.focusedIndex >= 0) {
           e.preventDefault();
-          state.selected.push(filtered[state.focusedIndex]);
+          state.selected = [filtered[state.focusedIndex]];
           state.inputValue = "";
           state.focusedIndex = -1;
           input.value = "";
