@@ -133,6 +133,9 @@
 
   <script>
     function initTagInputFromSelect(selectEl) {
+      if (selectEl.dataset.tagInputInitialized) return;
+      selectEl.dataset.tagInputInitialized = "true";
+
       const options = Array.from(selectEl.options)
         .filter(o => o.value !== "")
         .map(o => ({ value: o.value, text: o.text.trim() }));
