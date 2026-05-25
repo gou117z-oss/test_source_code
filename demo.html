@@ -227,7 +227,9 @@
           });
           li.addEventListener("mouseenter", () => {
             state.focusedIndex = idx;
-            render();
+            Array.from(dropdown.querySelectorAll(".tag-dropdown-item")).forEach((item, i) => {
+              item.classList.toggle("focused", i === idx);
+            });
           });
           dropdown.appendChild(li);
         });
