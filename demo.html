@@ -218,8 +218,9 @@
           li.className = "tag-dropdown-item" + (idx === state.focusedIndex ? " focused" : "");
           li.textContent = opt.text;
           li.addEventListener("mousedown", e => {
-            e.preventDefault();   // input のフォーカスを維持
-            e.stopPropagation(); // document mousedown に伝播させない
+            e.preventDefault(); // input のフォーカスを維持するだけ（DOM は変更しない）
+          });
+          li.addEventListener("click", () => {
             state.selected = [opt];
             state.inputValue = "";
             state.focusedIndex = -1;
@@ -283,7 +284,9 @@
       });
 
       document.addEventListener("mousedown", e => {
-        if (!wrapper.contains(e.target)) {
+        const path = e.composedPath ? e.composedPath() : [];
+        const inside = path.length > 0 ? path.includes(wrapper) : wrapper.contains(e.target);
+        if (!inside) {
           state.open = false;
           state.focusedIndex = -1;
           render();
