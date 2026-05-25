@@ -7,40 +7,31 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: sans-serif; padding: 40px; background: #f5f5f5; }
-    h1 { font-size: 18px; margin-bottom: 24px; color: #333; }
+    table { border-collapse: collapse; background: #fff; }
+    th, td { border: 1px solid #ccc; padding: 8px 12px; font-size: 14px; vertical-align: middle; }
+    th { background: #f0f0f0; white-space: nowrap; }
 
-    .tag-input-row {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      padding: 8px 0;
-    }
-    .tag-input-label {
-      min-width: 80px;
-      padding-top: 6px;
-      font-size: 14px;
-      color: #333;
-      white-space: nowrap;
-    }
     .tag-input-wrapper {
       position: relative;
-      flex: 1;
-      max-width: 500px;
+      min-width: 300px;
     }
     .tag-input-box {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       gap: 4px;
-      min-height: 36px;
-      padding: 4px 8px;
+      min-height: 32px;
+      padding: 3px 6px;
       border: 1px solid #aaa;
       border-radius: 3px;
       background: #fff;
       cursor: text;
       font-size: 14px;
     }
-    .tag-input-box.focused { border-color: #4a90d9; box-shadow: 0 0 0 2px rgba(74,144,217,0.2); }
+    .tag-input-box:focus-within {
+      border-color: #4a90d9;
+      box-shadow: 0 0 0 2px rgba(74,144,217,0.2);
+    }
     .tag {
       display: inline-flex;
       align-items: center;
@@ -51,11 +42,18 @@
       border-radius: 3px;
       font-size: 13px;
       line-height: 1.4;
+      max-width: 280px;
+    }
+    .tag span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .tag-remove {
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      flex-shrink: 0;
       width: 16px;
       height: 16px;
       border: none;
@@ -99,49 +97,57 @@
     }
     .tag-dropdown-item:hover,
     .tag-dropdown-item.focused { background: #4a90d9; color: #fff; }
-
-    .demo-card {
-      background: #fff;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      padding: 20px;
-      max-width: 600px;
-    }
   </style>
 </head>
 <body>
-  <h1>TagInputBox デモ</h1>
+
   <form name="search">
-    <div class="demo-card">
-      <div id="advertiser-row"></div>
-      <div id="ad-row" style="margin-top:12px"></div>
-    </div>
+    <table>
+      <tr>
+        <th title="">ASP名</th>
+        <td style="width:10%">
+          <select name="users_accounts[tieup_ops]">
+            <option value="">＝</option>
+            <option value="not">以外</option>
+            <option value="null">未入力</option>
+            <option value="nnull">未入力以外</option>
+          </select>
+        </td>
+        <td>
+          <select id="users_accounts_tieup" name="users_accounts[tieup]">
+            <option value=""> </option>
+            <option value="sl0500c">スターラボ【V-TAG】初月無料500円docomo※チャット</option>
+            <option value="sl0500ca">スターラボ【V-TAG】初月無料500円au※チャット</option>
+            <option value="newin2000">新インサイト【ADinsight】2000円au[広告NG] </option>
+            <option value="newin3000">新インサイト【ADinsight】3000円au[広告NG] </option>
+            <option value="newin5000">新インサイト【ADinsight】5000円au[広告NG]</option>
+            <option value="newin01000">新インサイト【ADinsight】初月無料1000円au[広告NG]</option>
+            <option value="tapjoy7500">タップジョイ【Tapjoy】7日無料500円docomo</option>
+            <option value="ev0_500_au">elvic【EV】初月無料500円au※LINE</option>
+            <option value="ev2_500_docomo">elvic【EV】初月無料500円docomo※LINE</option>
+            <option value="mimi7500d">mimi3【M3】7日無料500円docomo※LINE＠ </option>
+            <option value="adcon500a">アクティブシーク【アドコンビニエンス】500円au</option>
+          </select>
+        </td>
+      </tr>
+    </table>
   </form>
 
   <script>
-    const ADVERTISERS = [
-      { id: 3,  name: "TSCY" },
-      { id: 23, name: "TS協業" },
-      { id: 32, name: "トウル一副業LP" },
-      { id: 45, name: "サンプル広告主A" },
-      { id: 67, name: "サンプル広告主B" },
-    ];
+    function initTagInputFromSelect(selectEl) {
+      const options = Array.from(selectEl.options)
+        .filter(o => o.value !== "")
+        .map(o => ({ value: o.value, text: o.text.trim() }));
 
-    const ADS = [
-      { id: 1, name: "広告A" },
-      { id: 2, name: "広告B" },
-      { id: 3, name: "広告C" },
-    ];
+      const initialValue = selectEl.value;
+      const state = {
+        selected: options.filter(o => o.value === initialValue),
+        inputValue: "",
+        focusedIndex: -1,
+        open: false,
+      };
 
-    function createTagInput(container, label, options, initialSelected = [], selectConfig = null) {
-      const state = { selected: [...initialSelected], inputValue: "", focusedIndex: -1, open: false };
-
-      const row = document.createElement("div");
-      row.className = "tag-input-row";
-
-      const lbl = document.createElement("label");
-      lbl.className = "tag-input-label";
-      lbl.textContent = label;
+      selectEl.style.display = "none";
 
       const wrapper = document.createElement("div");
       wrapper.className = "tag-input-wrapper";
@@ -157,55 +163,36 @@
       const dropdown = document.createElement("ul");
       dropdown.className = "tag-dropdown";
 
-      let hiddenSelect = null;
-      if (selectConfig) {
-        hiddenSelect = document.createElement("select");
-        hiddenSelect.id = selectConfig.id;
-        hiddenSelect.name = selectConfig.name;
-
-        hiddenSelect.style.display = "none";
-        wrapper.appendChild(hiddenSelect);
-      }
-
       wrapper.appendChild(box);
       wrapper.appendChild(dropdown);
-      row.appendChild(lbl);
-      row.appendChild(wrapper);
-      container.appendChild(row);
+      selectEl.parentNode.insertBefore(wrapper, selectEl);
 
       function getFiltered() {
-        const ids = new Set(state.selected.map(s => s.id));
+        const vals = new Set(state.selected.map(s => s.value));
         return options.filter(o =>
-          !ids.has(o.id) &&
-          `${o.id}:${o.name}`.toLowerCase().includes(state.inputValue.toLowerCase())
+          !vals.has(o.value) &&
+          o.text.toLowerCase().includes(state.inputValue.toLowerCase())
         );
       }
 
       function syncSelect() {
-        if (!hiddenSelect) return;
-        hiddenSelect.innerHTML = "";
-        state.selected.forEach(opt => {
-          const o = document.createElement("option");
-          o.value = opt.id;
-          o.textContent = opt.name;
-          o.selected = true;
-          hiddenSelect.appendChild(o);
-        });
+        selectEl.value = state.selected.length > 0 ? state.selected[0].value : "";
       }
 
       function render() {
-        // inputは削除せずタグ要素だけ差し替える
         Array.from(box.querySelectorAll(".tag")).forEach(el => el.remove());
         state.selected.forEach(opt => {
           const tag = document.createElement("span");
           tag.className = "tag";
-          tag.innerHTML = `<span>${opt.id}:${opt.name}</span>`;
+          const span = document.createElement("span");
+          span.textContent = opt.text;
+          tag.appendChild(span);
           const btn = document.createElement("button");
           btn.className = "tag-remove";
           btn.textContent = "×";
           btn.addEventListener("mousedown", e => {
             e.preventDefault();
-            state.selected = state.selected.filter(s => s.id !== opt.id);
+            state.selected = [];
             render();
           });
           tag.appendChild(btn);
@@ -217,7 +204,7 @@
         filtered.forEach((opt, idx) => {
           const li = document.createElement("li");
           li.className = "tag-dropdown-item" + (idx === state.focusedIndex ? " focused" : "");
-          li.textContent = `${opt.id}:${opt.name}`;
+          li.textContent = opt.text;
           li.addEventListener("mousedown", e => {
             e.preventDefault();
             state.selected = [opt];
@@ -234,12 +221,7 @@
           dropdown.appendChild(li);
         });
 
-        if (state.open && filtered.length > 0) {
-          dropdown.classList.add("open");
-        } else {
-          dropdown.classList.remove("open");
-        }
-
+        dropdown.classList.toggle("open", state.open && filtered.length > 0);
         syncSelect();
       }
 
@@ -272,7 +254,7 @@
           state.open = false;
           state.focusedIndex = -1;
         } else if (e.key === "Backspace" && state.inputValue === "" && state.selected.length > 0) {
-          state.selected.pop();
+          state.selected = [];
         }
         render();
       });
@@ -290,19 +272,9 @@
       render();
     }
 
-    createTagInput(
-      document.getElementById("advertiser-row"),
-      "広告主",
-      ADVERTISERS,
-      [{ id: 32, name: "トウル一副業LP" }],
-      { id: "users_accounts_tieup", name: "users_accounts[tieup]" }
-    );
-
-    createTagInput(
-      document.getElementById("ad-row"),
-      "広告",
-      ADS
-    );
+    document.addEventListener("DOMContentLoaded", () => {
+      initTagInputFromSelect(document.getElementById("users_accounts_tieup"));
+    });
   </script>
 </body>
 </html>
