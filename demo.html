@@ -217,7 +217,9 @@
           const li = document.createElement("li");
           li.className = "tag-dropdown-item" + (idx === state.focusedIndex ? " focused" : "");
           li.textContent = opt.text;
-          li.addEventListener("click", () => {
+          li.addEventListener("mousedown", e => {
+            e.preventDefault();   // input のフォーカスを維持
+            e.stopPropagation(); // document mousedown に伝播させない
             state.selected = [opt];
             state.inputValue = "";
             state.focusedIndex = -1;
