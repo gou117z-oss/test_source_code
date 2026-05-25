@@ -32,19 +32,16 @@
       border-color: #4a90d9;
       box-shadow: 0 0 0 2px rgba(74,144,217,0.2);
     }
-    .tag {
-      display: inline-flex;
+    .tag-selected {
+      display: flex;
       align-items: center;
-      gap: 3px;
-      padding: 2px 6px;
-      background: #4a90d9;
-      color: #fff;
-      border-radius: 3px;
-      font-size: 13px;
-      line-height: 1.4;
-      max-width: 280px;
+      gap: 4px;
+      flex: 1;
+      min-width: 0;
+      color: #333;
     }
-    .tag span {
+    .tag-text {
+      flex: 1;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -58,12 +55,12 @@
       height: 16px;
       border: none;
       background: transparent;
-      color: #fff;
+      color: #333;
       font-size: 14px;
       cursor: pointer;
       border-radius: 2px;
     }
-    .tag-remove:hover { background: rgba(0,0,0,0.2); }
+    .tag-remove:hover { background: rgba(0,0,0,0.1); }
     .tag-input-field {
       flex: 1;
       min-width: 60px;
@@ -180,13 +177,13 @@
       }
 
       function render() {
-        Array.from(box.querySelectorAll(".tag")).forEach(el => el.remove());
-        state.selected.forEach(opt => {
-          const tag = document.createElement("span");
-          tag.className = "tag";
-          const span = document.createElement("span");
-          span.textContent = opt.text;
-          tag.appendChild(span);
+        Array.from(box.querySelectorAll(".tag-selected")).forEach(el => el.remove());
+
+        if (state.selected.length > 0) {
+          const opt = state.selected[0];
+          const sel = document.createElement("span");
+          sel.className = "tag-selected";
+
           const btn = document.createElement("button");
           btn.className = "tag-remove";
           btn.textContent = "×";
@@ -194,10 +191,20 @@
             e.preventDefault();
             state.selected = [];
             render();
+            input.focus();
           });
-          tag.appendChild(btn);
-          box.insertBefore(tag, input);
-        });
+          sel.appendChild(btn);
+
+          const span = document.createElement("span");
+          span.className = "tag-text";
+          span.textContent = opt.text;
+          sel.appendChild(span);
+
+          box.insertBefore(sel, input);
+          input.style.display = "none";
+        } else {
+          input.style.display = "";
+        }
 
         const filtered = getFiltered();
         dropdown.innerHTML = "";
@@ -259,7 +266,13 @@
         render();
       });
 
-      box.addEventListener("click", () => { input.focus(); state.open = true; render(); });
+      box.addEventListener("click", () => {
+        if (state.selected.length === 0) {
+          input.focus();
+          state.open = true;
+          render();
+        }
+      });
 
       document.addEventListener("mousedown", e => {
         if (!wrapper.contains(e.target)) {
