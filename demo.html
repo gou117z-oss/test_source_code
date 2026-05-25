@@ -111,10 +111,12 @@
 </head>
 <body>
   <h1>TagInputBox デモ</h1>
-  <div class="demo-card">
-    <div id="advertiser-row"></div>
-    <div id="ad-row" style="margin-top:12px"></div>
-  </div>
+  <form name="search">
+    <div class="demo-card">
+      <div id="advertiser-row"></div>
+      <div id="ad-row" style="margin-top:12px"></div>
+    </div>
+  </form>
 
   <script>
     const ADVERTISERS = [
@@ -131,7 +133,7 @@
       { id: 3, name: "広告C" },
     ];
 
-    function createTagInput(container, label, options, initialSelected = []) {
+    function createTagInput(container, label, options, initialSelected = [], selectConfig = null) {
       const state = { selected: [...initialSelected], inputValue: "", focusedIndex: -1, open: false };
 
       const row = document.createElement("div");
@@ -155,6 +157,16 @@
       const dropdown = document.createElement("ul");
       dropdown.className = "tag-dropdown";
 
+      let hiddenSelect = null;
+      if (selectConfig) {
+        hiddenSelect = document.createElement("select");
+        hiddenSelect.id = selectConfig.id;
+        hiddenSelect.name = selectConfig.name;
+        hiddenSelect.multiple = true;
+        hiddenSelect.style.display = "none";
+        wrapper.appendChild(hiddenSelect);
+      }
+
       wrapper.appendChild(box);
       wrapper.appendChild(dropdown);
       row.appendChild(lbl);
@@ -167,6 +179,18 @@
           !ids.has(o.id) &&
           `${o.id}:${o.name}`.toLowerCase().includes(state.inputValue.toLowerCase())
         );
+      }
+
+      function syncSelect() {
+        if (!hiddenSelect) return;
+        hiddenSelect.innerHTML = "";
+        state.selected.forEach(opt => {
+          const o = document.createElement("option");
+          o.value = opt.id;
+          o.textContent = opt.name;
+          o.selected = true;
+          hiddenSelect.appendChild(o);
+        });
       }
 
       function render() {
@@ -215,6 +239,8 @@
         } else {
           dropdown.classList.remove("open");
         }
+
+        syncSelect();
       }
 
       input.addEventListener("input", () => {
@@ -268,7 +294,8 @@
       document.getElementById("advertiser-row"),
       "広告主",
       ADVERTISERS,
-      [{ id: 32, name: "トウル一副業LP" }]
+      [{ id: 32, name: "トウル一副業LP" }],
+      { id: "users_accounts_tieup", name: "users_accounts[tieup]" }
     );
 
     createTagInput(
