@@ -14,6 +14,7 @@
     .tag-input-wrapper {
       position: relative;
       min-width: 300px;
+      z-index: 9999;
     }
     .tag-input-box {
       display: flex;
@@ -185,6 +186,7 @@
           sel.className = "tag-selected";
 
           const btn = document.createElement("button");
+          btn.type = "button";
           btn.className = "tag-remove";
           btn.textContent = "×";
           btn.addEventListener("mousedown", e => {
@@ -212,14 +214,13 @@
           const li = document.createElement("li");
           li.className = "tag-dropdown-item" + (idx === state.focusedIndex ? " focused" : "");
           li.textContent = opt.text;
-          li.addEventListener("mousedown", e => {
-            e.preventDefault();
+          li.addEventListener("click", () => {
             state.selected = [opt];
             state.inputValue = "";
             state.focusedIndex = -1;
+            state.open = false;
             input.value = "";
             render();
-            input.focus();
           });
           li.addEventListener("mouseenter", () => {
             state.focusedIndex = idx;
