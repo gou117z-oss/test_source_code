@@ -93,8 +93,6 @@
       pointer-events: auto;
       user-select: none;
       white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
     }
     .tag-dropdown-item:hover,
     .tag-dropdown-item.focused { background: #4a90d9; color: #fff; }
@@ -245,9 +243,10 @@
 
       function positionDropdown() {
         const rect = box.getBoundingClientRect();
-        dropdown.style.top   = (rect.bottom + 2) + "px";
-        dropdown.style.left  = rect.left + "px";
-        dropdown.style.width = rect.width + "px";
+        dropdown.style.top      = (rect.bottom + 2) + "px";
+        dropdown.style.left     = rect.left + "px";
+        dropdown.style.minWidth = rect.width + "px";
+        dropdown.style.width    = "auto";
       }
 
       window.addEventListener("scroll", positionDropdown, true);
