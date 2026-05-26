@@ -72,7 +72,7 @@
       background: transparent;
     }
     .tag-dropdown {
-      position: fixed;
+      position: absolute;
       margin: 0; padding: 0;
       list-style: none;
       background: #fff;
@@ -166,7 +166,8 @@
       dropdown.className = "tag-dropdown";
 
       wrapper.appendChild(box);
-      wrapper.appendChild(dropdown);
+      // dropdown は body 直下に置き、CSS transform の影響を回避する
+      document.body.appendChild(dropdown);
       selectEl.parentNode.insertBefore(wrapper, selectEl);
 
       function getFiltered() {
@@ -243,8 +244,8 @@
 
       function positionDropdown() {
         const rect = box.getBoundingClientRect();
-        dropdown.style.top      = (rect.bottom + 2) + "px";
-        dropdown.style.left     = rect.left + "px";
+        dropdown.style.top      = (rect.bottom + window.scrollY + 2) + "px";
+        dropdown.style.left     = (rect.left  + window.scrollX) + "px";
         dropdown.style.minWidth = rect.width + "px";
         dropdown.style.width    = "auto";
       }
@@ -300,7 +301,10 @@
 
       document.addEventListener("pointerdown", e => {
         const path = e.composedPath ? e.composedPath() : [];
-        const inside = path.length > 0 ? path.includes(wrapper) : wrapper.contains(e.target);
+        // dropdown は body 配下に移動済みのため、wrapper と dropdown 両方を確認する
+        const inside = path.length > 0
+          ? (path.includes(wrapper) || path.includes(dropdown))
+          : (wrapper.contains(e.target) || dropdown.contains(e.target));
         if (!inside) {
           state.open = false;
           state.focusedIndex = -1;
