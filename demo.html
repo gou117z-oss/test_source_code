@@ -18,67 +18,49 @@
     }
     .tag-input-box {
       display: flex;
-      flex-wrap: wrap;
       align-items: center;
-      gap: 4px;
-      min-height: 32px;
-      padding: 3px 24px 3px 6px;
-      border: 1px solid #aaa;
-      border-radius: 3px;
+      height: 23px;
+      padding: 0 20px 0 4px;
+      border: 1px solid #999;
+      border-radius: 0;
       background: #fff;
       cursor: pointer;
-      font-size: 14px;
+      font-size: 13px;
     }
     .tag-input-wrapper::after {
-      content: "＜";
+      content: "▼";
       position: absolute;
-      right: 6px;
+      right: 5px;
       top: 50%;
-      transform: translateY(-50%) rotate(90deg);
-      font-size: 11px;
-      color: #666;
+      transform: translateY(-50%);
+      font-size: 9px;
+      color: #333;
       pointer-events: none;
     }
     .tag-input-box:focus-within {
-      border-color: #4a90d9;
-      box-shadow: 0 0 0 2px rgba(74,144,217,0.2);
+      border-color: #999;
+      box-shadow: none;
     }
     .tag-selected {
-      display: flex;
-      align-items: center;
-      gap: 4px;
       flex: 1;
       min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
       color: #333;
     }
     .tag-text {
-      flex: 1;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-    .tag-remove {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      width: 16px;
-      height: 16px;
-      border: none;
-      background: transparent;
-      color: #333;
-      font-size: 14px;
-      cursor: pointer;
-      border-radius: 2px;
-    }
-    .tag-remove:hover { background: rgba(0,0,0,0.1); }
     .tag-input-field {
       flex: 1;
-      min-width: 60px;
+      min-width: 40px;
       border: none;
       outline: none;
-      padding: 2px 0;
-      font-size: 14px;
+      padding: 0;
+      font-size: 13px;
       background: transparent;
     }
     .tag-dropdown {
@@ -86,9 +68,8 @@
       margin: 0; padding: 0;
       list-style: none;
       background: #fff;
-      border: 1px solid #aaa;
-      border-radius: 3px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      border: 1px solid #999;
+      box-shadow: 2px 2px 4px rgba(0,0,0,0.2);
       z-index: 50;
       max-height: 240px;
       overflow-y: auto;
@@ -96,8 +77,8 @@
     }
     .tag-dropdown.open { display: block; }
     .tag-dropdown-item {
-      padding: 8px 12px;
-      font-size: 14px;
+      padding: 2px 8px;
+      font-size: 13px;
       color: #333;
       cursor: pointer;
       pointer-events: auto;
@@ -105,7 +86,7 @@
       white-space: nowrap;
     }
     .tag-dropdown-item:hover,
-    .tag-dropdown-item.focused { background: #4a90d9; color: #fff; }
+    .tag-dropdown-item.focused { background: #316ac5; color: #fff; }
   </style>
 </head>
 <body>
