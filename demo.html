@@ -26,7 +26,7 @@
       border: 1px solid #aaa;
       border-radius: 3px;
       background: #fff;
-      cursor: text;
+      cursor: pointer;
       font-size: 14px;
     }
     .tag-input-box:focus-within {
@@ -190,18 +190,6 @@
           const sel = document.createElement("span");
           sel.className = "tag-selected";
 
-          const btn = document.createElement("button");
-          btn.type = "button";
-          btn.className = "tag-remove";
-          btn.textContent = "×";
-          btn.addEventListener("mousedown", e => {
-            e.preventDefault();
-            state.selected = [];
-            render();
-            input.focus();
-          });
-          sel.appendChild(btn);
-
           const span = document.createElement("span");
           span.className = "tag-text";
           span.textContent = opt.text;
@@ -292,11 +280,10 @@
       });
 
       box.addEventListener("click", () => {
-        if (state.selected.length === 0) {
-          input.focus();
-          state.open = true;
-          render();
-        }
+        state.selected = [];
+        state.open = true;
+        render();
+        input.focus();
       });
 
       document.addEventListener("pointerdown", e => {
