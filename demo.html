@@ -22,12 +22,22 @@
       align-items: center;
       gap: 4px;
       min-height: 32px;
-      padding: 3px 6px;
+      padding: 3px 24px 3px 6px;
       border: 1px solid #aaa;
       border-radius: 3px;
       background: #fff;
       cursor: pointer;
       font-size: 14px;
+    }
+    .tag-input-wrapper::after {
+      content: "＜";
+      position: absolute;
+      right: 6px;
+      top: 50%;
+      transform: translateY(-50%) rotate(90deg);
+      font-size: 11px;
+      color: #666;
+      pointer-events: none;
     }
     .tag-input-box:focus-within {
       border-color: #4a90d9;
