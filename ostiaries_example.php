@@ -36,11 +36,8 @@ echo "=== NewTransaction ===\n";
 $new_tx = ostiaries_new_transaction($API_KEY, $ACCESS_KEY, $SERVICE_ID, $customer_numbers, $options);
 
 if (!ostiaries_is_success($new_tx)) {
-    fprintf(STDERR,
-        "NewTransaction 失敗: [%s] %s\n",
-        ostiaries_get_error_code($new_tx),
-        ostiaries_get_error_message($new_tx)
-    );
+    $msg = sprintf("NewTransaction 失敗: [%s] %s", ostiaries_get_error_code($new_tx), ostiaries_get_error_message($new_tx));
+    error_log($msg);
     exit(1);
 }
 
@@ -59,11 +56,8 @@ echo "=== StartAuthentication ===\n";
 $start = ostiaries_start_authentication($API_KEY, $ACCESS_KEY, $SERVICE_ID, $transaction_id);
 
 if (!ostiaries_is_success($start)) {
-    fprintf(STDERR,
-        "StartAuthentication 失敗: [%s] %s\n",
-        ostiaries_get_error_code($start),
-        ostiaries_get_error_message($start)
-    );
+    $msg = sprintf("StartAuthentication 失敗: [%s] %s", ostiaries_get_error_code($start), ostiaries_get_error_message($start));
+    error_log($msg);
     exit(1);
 }
 
@@ -91,11 +85,8 @@ for ($i = 0; $i < $max_polls; $i++) {
             echo "429 Too Many Requests — リトライします...\n";
             continue;
         }
-        fprintf(STDERR,
-            "GetTransactionStatus 失敗: [%s] %s\n",
-            ostiaries_get_error_code($status_res),
-            ostiaries_get_error_message($status_res)
-        );
+        $msg = sprintf("GetTransactionStatus 失敗: [%s] %s", ostiaries_get_error_code($status_res), ostiaries_get_error_message($status_res));
+        error_log($msg);
         exit(1);
     }
 
@@ -112,7 +103,7 @@ for ($i = 0; $i < $max_polls; $i++) {
 }
 
 if ($final_status === null) {
-    fwrite(STDERR, "タイムアウト: ポーリング上限に達しました。\n");
+    error_log("タイムアウト: ポーリング上限に達しました。");
     exit(1);
 }
 
@@ -133,11 +124,8 @@ if ($final_status === 'completed') {
         echo "created_at     : " . ($detail['created_at']     ?? '—') . "\n";
         echo "completed_at   : " . ($detail['completed_at']   ?? '—') . "\n";
     } else {
-        fprintf(STDERR,
-            "GetTransaction 失敗: [%s] %s\n",
-            ostiaries_get_error_code($tx),
-            ostiaries_get_error_message($tx)
-        );
+        $msg = sprintf("GetTransaction 失敗: [%s] %s", ostiaries_get_error_code($tx), ostiaries_get_error_message($tx));
+        error_log($msg);
     }
 } else {
     echo "認証は完了しませんでした（status={$final_status}）\n";
