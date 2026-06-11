@@ -436,3 +436,27 @@ function _ostiaries_ecdsa_raw_to_der($raw)
 
     return "\x30" . chr(strlen($seq)) . $seq;
 }
+
+// ============================================================
+// JSON レスポンスヘルパー（コントローラ共通）
+// ============================================================
+
+function _json_ok(array $data)
+{
+    echo json_encode(['result' => 'ok', 'data' => $data], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+function _json_error($message, $code = 500)
+{
+    http_response_code($code);
+    echo json_encode(['result' => 'error', 'message' => $message], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+function _json_api_error(array $response)
+{
+    $code = ostiaries_get_error_code($response);
+    $msg  = ostiaries_get_error_message($response);
+    _json_error("[{$code}] {$msg}", 502);
+}
