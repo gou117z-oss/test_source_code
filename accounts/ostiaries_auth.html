@@ -171,17 +171,23 @@
           phoneLink.href        = telUrl;
           qrCaption.href        = telUrl;
 
+          // カウントダウンは QR 生成より先に開始（QR エラーの影響を受けないよう）
+          startCountdown(expiresAt);
+
           qrcodeDiv.innerHTML = '';
           if (SHOW_QRCODE) {
-            const canvas = document.createElement('canvas');
-            qrcodeDiv.appendChild(canvas);
-            QRCode.toCanvas(canvas, telUrl, { width: 160, margin: 2 });
-            qrCaption.style.display = '';
+            try {
+              const canvas = document.createElement('canvas');
+              qrcodeDiv.appendChild(canvas);
+              QRCode.toCanvas(canvas, telUrl, { width: 160, margin: 2 });
+              qrCaption.style.display = '';
+            } catch (e) {
+              console.warn('[QRCode]', e);
+              qrCaption.style.display = 'none';
+            }
           } else {
             qrCaption.style.display = 'none';
           }
-
-          startCountdown(expiresAt);
         },
 
         onStatusChange(status) {
