@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>着信認証</title>
+</head>
+<body>
+
+  <p id="message">認証を開始しています...</p>
+  <p id="dial-number" style="display:none">
+    <strong id="dial-number-value"></strong> へ電話してください。
+  </p>
+  <button id="cancel-btn" style="display:none" type="button">キャンセル</button>
+
+  <script src="../ostiaries_auth.js"></script>
+  <script>
+    const auth = new OstiariesAuth({
+      endpoints: {
+        start:  '/accounts/ostiaries_start.php',
+        status: '/accounts/ostiaries_status.php',
+        result: '/accounts/ostiaries_result.php',
+        cancel: '/accounts/ostiaries_cancel.php',
+      },
+      customerNumbers: ['09012345678'],  // 実際の電話番号に変更してください
+      identifier:      'order_001',      // 任意の識別子
+
+      onDialNumber(dialNumber) {
+        document.getElementById('message').textContent = '下記の番号へ電話してください。';
+        document.getElementById('dial-number-value').textContent = dialNumber;
+        document.getElementById('dial-number').style.display = '';
+        document.getElementById('cancel-btn').style.display  = '';
+      },
+
+      onStatusChange(status) {
+        console.log('[status]', status);
+      },
+
+      onComplete(result) {
+        document.getElementById('dial-number').style.display = 'none';
+        document.getElementById('cancel-btn').style.display  = 'none';
+        if (result.auth_result === 'ok') {
+          document.getElementById('message').textContent = '認証が完了しました。';
+        } else {
+          document.getElementById('message').textContent = '番号が一致しませんでした。';
+        }
+      },
+
+      onFailed(status) {
+        document.getElementById('dial-number').style.display = 'none';
+        document.getElementById('cancel-btn').style.display  = 'none';
+        const labels = {
+          failed:    '認証に失敗しました。',
+          cancelled: 'キャンセルされました。',
+          expired:   '認証がタイムアウトしました。',
+        };
+        document.getElementById('message').textContent = labels[status] ?? '認証が終了しました。';
+      },
+
+      onError(message) {
+        document.getElementById('message').textContent = 'エラーが発生しました: ' + message;
+        console.error('[OstiariesAuth]', message);
+      },
+    });
+
+    document.getElementById('cancel-btn').addEventListener('click', () => auth.cancel());
+
+    auth.start();
+  </script>
+</body>
+</html>
