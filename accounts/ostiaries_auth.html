@@ -4,40 +4,129 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>着信認証</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: sans-serif;
+      background: #f0f0f0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .card {
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 32px 40px;
+      text-align: center;
+      width: 100%;
+      max-width: 420px;
+    }
+
+    /* フォーム */
+    #form-area label { display: block; margin-bottom: 6px; font-size: 14px; }
+    #form-area input[type="tel"] {
+      width: 100%; padding: 8px 10px; font-size: 16px;
+      border: 1px solid #aaa; border-radius: 4px; margin-bottom: 10px;
+    }
+    #form-area button {
+      width: 100%; padding: 10px; font-size: 15px;
+      background: #0055cc; color: #fff; border: none;
+      border-radius: 4px; cursor: pointer;
+    }
+    #form-area button:hover { background: #0044aa; }
+    #form-error { margin-top: 8px; font-size: 13px; color: red; }
+
+    /* 認証中 */
+    .auth-intro    { font-size: 13px; line-height: 2; color: #333; }
+    .auth-customer { color: #0099cc; font-weight: bold; }
+    .auth-label    { font-size: 13px; color: #333; margin-top: 6px; }
+
+    .auth-countdown {
+      font-size: 17px; font-weight: bold;
+      color: #0044cc; margin: 18px 0 4px;
+    }
+    .auth-phone-link {
+      display: block;
+      font-size: 30px; font-weight: bold;
+      color: #0044cc;
+      text-decoration: none;
+      margin: 4px 0 18px;
+    }
+    .auth-phone-link:hover { text-decoration: underline; }
+
+    #qrcode { display: flex; justify-content: center; margin-bottom: 10px; }
+    #qrcode canvas { display: block; }
+
+    .auth-qr-caption {
+      font-size: 13px; color: #0099cc;
+      text-decoration: none; display: block; margin-bottom: 20px;
+    }
+    .auth-qr-caption:hover { text-decoration: underline; }
+
+    #cancel-btn {
+      font-size: 13px; color: #666; background: none;
+      border: 1px solid #aaa; border-radius: 4px;
+      padding: 6px 20px; cursor: pointer;
+    }
+    #cancel-btn:hover { background: #f0f0f0; }
+  </style>
 </head>
 <body>
+  <div class="card">
 
-  <!-- 入力フォーム -->
-  <div id="form-area">
-    <label for="phone">電話番号</label>
-    <input type="tel" id="phone" placeholder="09012345678" />
-    <button id="start-btn" type="button">認証開始</button>
-    <p id="form-error" style="color:red; display:none"></p>
+    <!-- 入力フォーム -->
+    <div id="form-area">
+      <label for="phone">電話番号</label>
+      <input type="tel" id="phone" placeholder="09012345678" />
+      <button id="start-btn" type="button">認証開始</button>
+      <p id="form-error" style="display:none"></p>
+    </div>
+
+    <!-- 認証中 -->
+    <div id="auth-area" style="display:none">
+      <p class="auth-intro">
+        設定された着信認証用番号 <span id="masked-number" class="auth-customer"></span> から
+      </p>
+      <p class="auth-label">下記の番号にダイアルして下さい。</p>
+
+      <p id="countdown-area" class="auth-countdown" style="display:none">
+        残り秒数：<span id="countdown-value"></span> 秒
+      </p>
+
+      <a id="phone-link" href="tel:" class="auth-phone-link"></a>
+
+      <div id="qrcode"></div>
+
+      <a id="qr-caption" href="tel:" class="auth-qr-caption">
+        スマートフォンのQRコードリーダーからも発信できます
+      </a>
+
+      <button id="cancel-btn" type="button">キャンセル</button>
+    </div>
+
   </div>
 
-  <!-- 認証中 -->
-  <div id="auth-area" style="display:none">
-    <p id="message"></p>
-    <p id="dial-number" style="display:none">
-      発信番号: <strong id="dial-number-value"></strong>
-    </p>
-    <p id="countdown" style="display:none">残り <strong id="countdown-value"></strong> 秒</p>
-    <button id="cancel-btn" type="button">キャンセル</button>
-  </div>
-
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
   <script src="../ostiaries_auth.js"></script>
   <script>
-    const formArea      = document.getElementById('form-area');
-    const authArea      = document.getElementById('auth-area');
-    const phoneInput    = document.getElementById('phone');
-    const startBtn      = document.getElementById('start-btn');
-    const cancelBtn     = document.getElementById('cancel-btn');
-    const formError     = document.getElementById('form-error');
-    const message       = document.getElementById('message');
-    const dialNumber    = document.getElementById('dial-number');
-    const dialValue     = document.getElementById('dial-number-value');
-    const countdownEl   = document.getElementById('countdown');
-    const countdownVal  = document.getElementById('countdown-value');
+    const formArea     = document.getElementById('form-area');
+    const authArea     = document.getElementById('auth-area');
+    const phoneInput   = document.getElementById('phone');
+    const startBtn     = document.getElementById('start-btn');
+    const cancelBtn    = document.getElementById('cancel-btn');
+    const formError    = document.getElementById('form-error');
+    const maskedNumber = document.getElementById('masked-number');
+    const countdownArea = document.getElementById('countdown-area');
+    const countdownVal = document.getElementById('countdown-value');
+    const phoneLink    = document.getElementById('phone-link');
+    const qrCaption    = document.getElementById('qr-caption');
+    const qrcodeDiv    = document.getElementById('qrcode');
+
+    // QRコードを表示するか（true: 表示 / false: 非表示）
+    const SHOW_QRCODE = true;
 
     let auth        = null;
     let countdownId = null;
@@ -58,11 +147,14 @@
     });
 
     function startAuth(phone) {
-      formArea.style.display   = 'none';
-      authArea.style.display   = '';
-      dialNumber.style.display = 'none';
-      countdownEl.style.display = 'none';
-      message.textContent      = '認証を開始しています...';
+      maskedNumber.textContent     = maskPhone(phone);
+      formArea.style.display       = 'none';
+      authArea.style.display       = '';
+      countdownArea.style.display  = 'none';
+      phoneLink.textContent        = '';
+      phoneLink.href               = 'tel:';
+      qrCaption.href               = 'tel:';
+      qrcodeDiv.innerHTML          = '';
 
       auth = new OstiariesAuth({
         endpoints: {
@@ -74,9 +166,21 @@
         customerNumbers: [phone],
 
         onDialNumber(number, expiresAt) {
-          message.textContent      = '下記の番号へ電話してください。';
-          dialValue.textContent    = number;
-          dialNumber.style.display = '';
+          const telUrl = 'tel:' + number.replace(/[^\d+]/g, '');
+          phoneLink.textContent = number;
+          phoneLink.href        = telUrl;
+          qrCaption.href        = telUrl;
+
+          qrcodeDiv.innerHTML = '';
+          if (SHOW_QRCODE) {
+            const canvas = document.createElement('canvas');
+            qrcodeDiv.appendChild(canvas);
+            QRCode.toCanvas(canvas, telUrl, { width: 160, margin: 2 });
+            qrCaption.style.display = '';
+          } else {
+            qrCaption.style.display = 'none';
+          }
+
           startCountdown(expiresAt);
         },
 
@@ -103,15 +207,19 @@
       auth.start();
     }
 
+    function maskPhone(phone) {
+      const digits = phone.replace(/\D/g, '');
+      return 'xxxxxxx' + digits.slice(-4);
+    }
+
     function startCountdown(expiresAt) {
       stopCountdown();
-
       const expireTime = new Date(expiresAt).getTime();
 
       function tick() {
         const remaining = Math.max(0, Math.floor((expireTime - Date.now()) / 1000));
-        countdownVal.textContent  = remaining;
-        countdownEl.style.display = '';
+        countdownVal.textContent    = remaining;
+        countdownArea.style.display = '';
         if (remaining <= 0) stopCountdown();
       }
 
@@ -124,13 +232,8 @@
         clearInterval(countdownId);
         countdownId = null;
       }
-      countdownEl.style.display = 'none';
     }
 
-    /**
-     * data をフォームで POST 送信してリダイレクトする
-     * オブジェクト・配列は JSON 文字列として送信する
-     */
     function postAndRedirect(url, data) {
       const form = document.createElement('form');
       form.method = 'POST';
