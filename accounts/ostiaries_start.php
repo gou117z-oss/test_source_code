@@ -57,4 +57,5 @@ if (!ostiaries_is_success($start)) {
 _json_ok([
     'transaction_id'   => $transaction_id,
     'authentic_number' => $authentic_number,
+    'expires_at'       => $result['expires_at'] ?? null,
 ]);
