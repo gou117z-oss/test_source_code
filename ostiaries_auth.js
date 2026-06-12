@@ -81,7 +81,7 @@ class OstiariesAuth {
       if (!res) return;
 
       this.#transactionId = res.data.transaction_id;
-      this.#callbacks.onDialNumber(res.data.authentic_number);
+      this.#callbacks.onDialNumber(res.data.authentic_number, res.data.expires_at);
 
       this.#schedulePoll();
 
