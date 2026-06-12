@@ -225,18 +225,8 @@
 
     function startCountdown(expiresAt, expiresIn) {
       stopCountdown();
-
-      // expires_at（ISO文字列）が使えればそちらを優先、だめなら expires_in（秒数）で計算
-      let expireTime = null;
-      if (expiresAt) {
-        const normalized = expiresAt.replace(/(\.\d{3})\d+/, '$1');
-        const t = new Date(normalized).getTime();
-        if (!isNaN(t)) expireTime = t;
-      }
-      if (!expireTime && expiresIn > 0) {
-        expireTime = Date.now() + expiresIn * 1000;
-      }
-      if (!expireTime) return;
+      if (!(expiresIn > 0)) return;
+      const expireTime = Date.now() + expiresIn * 1000;
 
       function tick() {
         const remaining = Math.max(0, Math.floor((expireTime - Date.now()) / 1000));
