@@ -10,9 +10,13 @@
  *   { result: 'ok', data: { caller_number, auth_result, ... } }
  */
 
+ob_start();
+error_reporting(0);
+
 require_once __DIR__ . '/../ostiaries_api.php';
 require_once __DIR__ . '/../ostiaries_config.php';
 
+ob_clean();
 header('Content-Type: application/json; charset=UTF-8');
 
 $input          = json_decode(file_get_contents('php://input'), true) ?: [];

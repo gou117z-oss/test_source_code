@@ -162,7 +162,15 @@ class OstiariesAuth {
 
     if (res.status === 429) return null; // リトライ可
 
-    const json = await res.json();
+    const text = await res.text();
+    let json;
+    try {
+      json = JSON.parse(text);
+    } catch {
+      // JSON以外が返ってきた場合（PHPエラー・404ページ等）は生テキストを表示
+      this.#callbacks.onError(`[HTTP ${res.status}] ${url}\n${text.slice(0, 300)}`);
+      return null;
+    }
 
     if (json.result !== 'ok') {
       this.#callbacks.onError(json.message ?? 'Unknown error');
