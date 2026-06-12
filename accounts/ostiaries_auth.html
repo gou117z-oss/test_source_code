@@ -54,10 +54,10 @@
     });
 
     function startAuth(phone) {
-      formArea.style.display  = 'none';
-      authArea.style.display  = '';
+      formArea.style.display   = 'none';
+      authArea.style.display   = '';
       dialNumber.style.display = 'none';
-      message.textContent     = '認証を開始しています...';
+      message.textContent      = '認証を開始しています...';
 
       auth = new OstiariesAuth({
         endpoints: {
@@ -79,48 +79,43 @@
         },
 
         onComplete(result) {
-          dialNumber.style.display = 'none';
-          cancelBtn.style.display  = 'none';
-          message.textContent = result.auth_result === 'ok'
-            ? '認証が完了しました。'
-            : '番号が一致しませんでした。';
+          postAndRedirect('/accounts/ostiaries_ok', result);
         },
 
         onFailed(status) {
-          dialNumber.style.display = 'none';
-          cancelBtn.style.display  = 'none';
-          const labels = {
-            failed:    '認証に失敗しました。',
-            cancelled: 'キャンセルされました。',
-            expired:   '認証がタイムアウトしました。',
-          };
-          message.textContent = labels[status] ?? '認証が終了しました。';
-          showRetry();
+          postAndRedirect('/accounts/ostiaries_ng', { status });
         },
 
         onError(msg) {
-          message.textContent = 'エラーが発生しました: ' + msg;
-          console.error('[OstiariesAuth]', msg);
-          showRetry();
+          postAndRedirect('/accounts/ostiaries_ng', { status: 'error', message: msg });
         },
       });
 
       auth.start();
     }
 
-    function showRetry() {
-      cancelBtn.style.display = 'none';
-      // フォームに戻れるボタンを表示
-      const retryBtn = document.createElement('button');
-      retryBtn.type = 'button';
-      retryBtn.textContent = '戻る';
-      retryBtn.addEventListener('click', () => {
-        retryBtn.remove();
-        cancelBtn.style.display = '';
-        authArea.style.display  = 'none';
-        formArea.style.display  = '';
-      });
-      authArea.appendChild(retryBtn);
+    /**
+     * data をフォームで POST 送信してリダイレクトする
+     * オブジェクト・配列は JSON 文字列として送信する
+     */
+    function postAndRedirect(url, data) {
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = url;
+      form.style.display = 'none';
+
+      for (const [key, value] of Object.entries(data ?? {})) {
+        const input = document.createElement('input');
+        input.type  = 'hidden';
+        input.name  = key;
+        input.value = (value !== null && typeof value === 'object')
+          ? JSON.stringify(value)
+          : String(value ?? '');
+        form.appendChild(input);
+      }
+
+      document.body.appendChild(form);
+      form.submit();
     }
   </script>
 </body>

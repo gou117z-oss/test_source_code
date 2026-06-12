@@ -37,7 +37,7 @@ class OstiariesAuth {
   #timerId       = null;
   #stopped       = false;
 
-  static #TERMINAL_STATUSES = new Set(['completed', 'failed', 'cancelled', 'expired']);
+  static #TERMINAL_STATUSES = new Set(['succeeded', 'completed', 'failed', 'cancelled', 'expired']);
 
   constructor(options = {}) {
     const ep = options.endpoints ?? {};
@@ -133,7 +133,7 @@ class OstiariesAuth {
       if (OstiariesAuth.#TERMINAL_STATUSES.has(status)) {
         this.#stopped = true;
 
-        if (status === 'completed') {
+        if (status === 'succeeded' || status === 'completed') {
           const result = await this.#post(this.#endpoints.result, {
             transaction_id: this.#transactionId,
           });
