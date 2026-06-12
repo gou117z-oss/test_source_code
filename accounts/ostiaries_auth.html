@@ -7,65 +7,121 @@
 </head>
 <body>
 
-  <p id="message">認証を開始しています...</p>
-  <p id="dial-number" style="display:none">
-    <strong id="dial-number-value"></strong> へ電話してください。
-  </p>
-  <button id="cancel-btn" style="display:none" type="button">キャンセル</button>
+  <!-- 入力フォーム -->
+  <div id="form-area">
+    <label for="phone">電話番号</label>
+    <input type="tel" id="phone" placeholder="09012345678" />
+    <button id="start-btn" type="button">認証開始</button>
+    <p id="form-error" style="color:red; display:none"></p>
+  </div>
+
+  <!-- 認証中 -->
+  <div id="auth-area" style="display:none">
+    <p id="message"></p>
+    <p id="dial-number" style="display:none">
+      発信番号: <strong id="dial-number-value"></strong>
+    </p>
+    <button id="cancel-btn" type="button">キャンセル</button>
+  </div>
 
   <script src="../ostiaries_auth.js"></script>
   <script>
-    const auth = new OstiariesAuth({
-      endpoints: {
-        start:  '/accounts/ostiaries_start.php',
-        status: '/accounts/ostiaries_status.php',
-        result: '/accounts/ostiaries_result.php',
-        cancel: '/accounts/ostiaries_cancel.php',
-      },
-      customerNumbers: ['09012345678'],  // 実際の電話番号に変更してください
-      identifier:      'order_001',      // 任意の識別子
+    const formArea   = document.getElementById('form-area');
+    const authArea   = document.getElementById('auth-area');
+    const phoneInput = document.getElementById('phone');
+    const startBtn   = document.getElementById('start-btn');
+    const cancelBtn  = document.getElementById('cancel-btn');
+    const formError  = document.getElementById('form-error');
+    const message    = document.getElementById('message');
+    const dialNumber = document.getElementById('dial-number');
+    const dialValue  = document.getElementById('dial-number-value');
 
-      onDialNumber(dialNumber) {
-        document.getElementById('message').textContent = '下記の番号へ電話してください。';
-        document.getElementById('dial-number-value').textContent = dialNumber;
-        document.getElementById('dial-number').style.display = '';
-        document.getElementById('cancel-btn').style.display  = '';
-      },
+    let auth = null;
 
-      onStatusChange(status) {
-        console.log('[status]', status);
-      },
-
-      onComplete(result) {
-        document.getElementById('dial-number').style.display = 'none';
-        document.getElementById('cancel-btn').style.display  = 'none';
-        if (result.auth_result === 'ok') {
-          document.getElementById('message').textContent = '認証が完了しました。';
-        } else {
-          document.getElementById('message').textContent = '番号が一致しませんでした。';
-        }
-      },
-
-      onFailed(status) {
-        document.getElementById('dial-number').style.display = 'none';
-        document.getElementById('cancel-btn').style.display  = 'none';
-        const labels = {
-          failed:    '認証に失敗しました。',
-          cancelled: 'キャンセルされました。',
-          expired:   '認証がタイムアウトしました。',
-        };
-        document.getElementById('message').textContent = labels[status] ?? '認証が終了しました。';
-      },
-
-      onError(message) {
-        document.getElementById('message').textContent = 'エラーが発生しました: ' + message;
-        console.error('[OstiariesAuth]', message);
-      },
+    startBtn.addEventListener('click', () => {
+      const phone = phoneInput.value.trim();
+      if (!phone) {
+        formError.textContent = '電話番号を入力してください。';
+        formError.style.display = '';
+        return;
+      }
+      formError.style.display = 'none';
+      startAuth(phone);
     });
 
-    document.getElementById('cancel-btn').addEventListener('click', () => auth.cancel());
+    cancelBtn.addEventListener('click', () => {
+      if (auth) auth.cancel();
+    });
 
-    auth.start();
+    function startAuth(phone) {
+      formArea.style.display  = 'none';
+      authArea.style.display  = '';
+      dialNumber.style.display = 'none';
+      message.textContent     = '認証を開始しています...';
+
+      auth = new OstiariesAuth({
+        endpoints: {
+          start:  '/accounts/ostiaries_start.php',
+          status: '/accounts/ostiaries_status.php',
+          result: '/accounts/ostiaries_result.php',
+          cancel: '/accounts/ostiaries_cancel.php',
+        },
+        customerNumbers: [phone],
+
+        onDialNumber(number) {
+          message.textContent      = '下記の番号へ電話してください。';
+          dialValue.textContent    = number;
+          dialNumber.style.display = '';
+        },
+
+        onStatusChange(status) {
+          console.log('[status]', status);
+        },
+
+        onComplete(result) {
+          dialNumber.style.display = 'none';
+          cancelBtn.style.display  = 'none';
+          message.textContent = result.auth_result === 'ok'
+            ? '認証が完了しました。'
+            : '番号が一致しませんでした。';
+        },
+
+        onFailed(status) {
+          dialNumber.style.display = 'none';
+          cancelBtn.style.display  = 'none';
+          const labels = {
+            failed:    '認証に失敗しました。',
+            cancelled: 'キャンセルされました。',
+            expired:   '認証がタイムアウトしました。',
+          };
+          message.textContent = labels[status] ?? '認証が終了しました。';
+          showRetry();
+        },
+
+        onError(msg) {
+          message.textContent = 'エラーが発生しました: ' + msg;
+          console.error('[OstiariesAuth]', msg);
+          showRetry();
+        },
+      });
+
+      auth.start();
+    }
+
+    function showRetry() {
+      cancelBtn.style.display = 'none';
+      // フォームに戻れるボタンを表示
+      const retryBtn = document.createElement('button');
+      retryBtn.type = 'button';
+      retryBtn.textContent = '戻る';
+      retryBtn.addEventListener('click', () => {
+        retryBtn.remove();
+        cancelBtn.style.display = '';
+        authArea.style.display  = 'none';
+        formArea.style.display  = '';
+      });
+      authArea.appendChild(retryBtn);
+    }
   </script>
 </body>
 </html>
