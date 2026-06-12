@@ -166,6 +166,7 @@
         customerNumbers: [phone],
 
         onDialNumber(number, expiresAt) {
+          console.log('[onDialNumber] number:', number, 'expiresAt:', expiresAt);
           const telUrl = 'tel:' + number.replace(/[^\d+]/g, '');
           phoneLink.textContent = number;
           phoneLink.href        = telUrl;
