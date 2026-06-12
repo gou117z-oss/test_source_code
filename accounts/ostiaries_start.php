@@ -42,8 +42,9 @@ if (!ostiaries_is_success($new_tx)) {
     _json_api_error($new_tx);
 }
 
-$result         = ostiaries_get_result($new_tx);
-$transaction_id = $result['transaction_id'];
+$result          = ostiaries_get_result($new_tx);
+$transaction_id  = $result['transaction_id'];
+$authentic_number = $result['authentic_number'];
 
 $start = ostiaries_start_authentication(
     OSTIARIES_API_KEY, OSTIARIES_ACCESS_KEY,
@@ -53,5 +54,7 @@ if (!ostiaries_is_success($start)) {
     _json_api_error($start);
 }
 
-// result の全フィールドをそのまま返す（フィールド名確認用）
-_json_ok($result);
+_json_ok([
+    'transaction_id'   => $transaction_id,
+    'authentic_number' => $authentic_number,
+]);

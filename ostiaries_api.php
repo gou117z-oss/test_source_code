@@ -171,6 +171,7 @@ function ostiaries_new_transaction($api_key, $access_key, $service_id, array $cu
         $params['reportback_url'] = (string)$options['reportback_url'];
     }
 
+    // result フィールド: transaction_id, authentic_number, created_at, expires_at, customer_numbers
     return ostiaries_request('NewTransaction', $params, $api_key, $access_key);
 }
 
