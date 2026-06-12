@@ -3,7 +3,12 @@
  *
  * 使い方:
  *   const auth = new OstiariesAuth({
- *     controllerUrl:    '/ostiaries_controller.php',
+ *     endpoints: {
+ *       start:  '/accounts/ostiaries_start',
+ *       status: '/accounts/ostiaries_status',
+ *       result: '/accounts/ostiaries_result',
+ *       cancel: '/accounts/ostiaries_cancel',
+ *     },
  *     customerNumbers:  ['09012345678'],
  *     identifier:       'order_001',         // 任意
  *     reportbackUrl:    'https://example.com/ostiaries_reportback.php', // 任意
@@ -20,7 +25,7 @@
  *   auth.cancel();   // 途中でキャンセル
  */
 class OstiariesAuth {
-  #controllerUrl;
+  #endpoints;
   #customerNumbers;
   #identifier;
   #reportbackUrl;
@@ -35,12 +40,19 @@ class OstiariesAuth {
   static #TERMINAL_STATUSES = new Set(['completed', 'failed', 'cancelled', 'expired']);
 
   constructor(options = {}) {
-    this.#controllerUrl   = options.controllerUrl   ?? '/ostiaries_controller.php';
-    this.#customerNumbers = options.customerNumbers  ?? [];
-    this.#identifier      = options.identifier       ?? null;
-    this.#reportbackUrl   = options.reportbackUrl    ?? null;
-    this.#waitTime        = options.waitTime         ?? null;
-    this.#pollInterval    = options.pollInterval     ?? 3000;
+    const ep = options.endpoints ?? {};
+    this.#endpoints = {
+      start:  ep.start  ?? '/accounts/ostiaries_start',
+      status: ep.status ?? '/accounts/ostiaries_status',
+      result: ep.result ?? '/accounts/ostiaries_result',
+      cancel: ep.cancel ?? '/accounts/ostiaries_cancel',
+    };
+
+    this.#customerNumbers = options.customerNumbers ?? [];
+    this.#identifier      = options.identifier      ?? null;
+    this.#reportbackUrl   = options.reportbackUrl   ?? null;
+    this.#waitTime        = options.waitTime        ?? null;
+    this.#pollInterval    = options.pollInterval    ?? 3000;
 
     this.#callbacks = {
       onDialNumber:   options.onDialNumber   ?? (() => {}),
@@ -60,12 +72,12 @@ class OstiariesAuth {
     this.#stopped = false;
 
     try {
-      const body = { action: 'start', customer_numbers: this.#customerNumbers };
+      const body = { customer_numbers: this.#customerNumbers };
       if (this.#identifier)    body.identifier     = this.#identifier;
       if (this.#reportbackUrl) body.reportback_url = this.#reportbackUrl;
       if (this.#waitTime)      body.wait_time      = this.#waitTime;
 
-      const res = await this.#post(body);
+      const res = await this.#post(this.#endpoints.start, body);
       if (!res) return;
 
       this.#transactionId = res.data.transaction_id;
@@ -86,7 +98,7 @@ class OstiariesAuth {
     if (!this.#transactionId) return;
 
     try {
-      await this.#post({ action: 'cancel', transaction_id: this.#transactionId });
+      await this.#post(this.#endpoints.cancel, { transaction_id: this.#transactionId });
     } catch (err) {
       this.#callbacks.onError(String(err));
     }
@@ -105,8 +117,7 @@ class OstiariesAuth {
     if (this.#stopped) return;
 
     try {
-      const res = await this.#post({
-        action:         'status',
+      const res = await this.#post(this.#endpoints.status, {
         transaction_id: this.#transactionId,
       });
 
@@ -123,8 +134,7 @@ class OstiariesAuth {
         this.#stopped = true;
 
         if (status === 'completed') {
-          const result = await this.#post({
-            action:         'result',
+          const result = await this.#post(this.#endpoints.result, {
             transaction_id: this.#transactionId,
           });
           if (result) {
@@ -142,9 +152,9 @@ class OstiariesAuth {
     }
   }
 
-  /** コントローラへ POST してレスポンスを返す。エラー時は null を返す */
-  async #post(body) {
-    const res = await fetch(this.#controllerUrl, {
+  /** 指定 URL へ POST してレスポンスを返す。エラー時は null を返す */
+  async #post(url, body) {
+    const res = await fetch(url, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify(body),
