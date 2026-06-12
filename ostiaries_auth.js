@@ -81,7 +81,12 @@ class OstiariesAuth {
       if (!res) return;
 
       this.#transactionId = res.data.transaction_id;
-      this.#callbacks.onDialNumber(res.data.authentic_number, res.data.expires_at);
+      // expires_at（ISO文字列）と expires_in（秒数）の両方を渡す
+      this.#callbacks.onDialNumber(
+        res.data.authentic_number,
+        res.data.expires_at,
+        res.data.expires_in ?? 600
+      );
 
       this.#schedulePoll();
 

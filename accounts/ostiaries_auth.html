@@ -165,15 +165,14 @@
         },
         customerNumbers: [phone],
 
-        onDialNumber(number, expiresAt) {
-          console.log('[onDialNumber] number:', number, 'expiresAt:', expiresAt);
+        onDialNumber(number, expiresAt, expiresIn) {
           const telUrl = 'tel:' + number.replace(/[^\d+]/g, '');
           phoneLink.textContent = number;
           phoneLink.href        = telUrl;
           qrCaption.href        = telUrl;
 
           // カウントダウンは QR 生成より先に開始（QR エラーの影響を受けないよう）
-          startCountdown(expiresAt);
+          startCountdown(expiresAt, expiresIn);
 
           qrcodeDiv.innerHTML = '';
           if (SHOW_QRCODE) {
@@ -224,13 +223,20 @@
       return 'xxxxxxx' + digits.slice(-4);
     }
 
-    function startCountdown(expiresAt) {
+    function startCountdown(expiresAt, expiresIn) {
       stopCountdown();
-      if (!expiresAt) return;
-      // 秒以下の小数桁数が3桁超の場合 (例: .19301) に Date が NaN になるブラウザ対策
-      const normalized = expiresAt.replace(/(\.\d{3})\d+/, '$1');
-      const expireTime = new Date(normalized).getTime();
-      if (isNaN(expireTime)) return;
+
+      // expires_at（ISO文字列）が使えればそちらを優先、だめなら expires_in（秒数）で計算
+      let expireTime = null;
+      if (expiresAt) {
+        const normalized = expiresAt.replace(/(\.\d{3})\d+/, '$1');
+        const t = new Date(normalized).getTime();
+        if (!isNaN(t)) expireTime = t;
+      }
+      if (!expireTime && expiresIn > 0) {
+        expireTime = Date.now() + expiresIn * 1000;
+      }
+      if (!expireTime) return;
 
       function tick() {
         const remaining = Math.max(0, Math.floor((expireTime - Date.now()) / 1000));
