@@ -29,7 +29,7 @@ if (empty($customer_numbers) || !is_array($customer_numbers)) {
     _json_error('customer_numbers が不正です', 400);
 }
 
-$options = [];
+$options = ['wait_time' => OSTIARIES_WAIT_TIME];
 if (isset($input['wait_time']))      { $options['wait_time']      = (int)$input['wait_time']; }
 if (isset($input['identifier']))     { $options['identifier']     = (string)$input['identifier']; }
 if (isset($input['reportback_url'])) { $options['reportback_url'] = (string)$input['reportback_url']; }
@@ -57,7 +57,7 @@ if (!ostiaries_is_success($start)) {
 $expires_at = $result['expires_at'] ?? null;
 $expires_in = $expires_at
     ? max(0, (int)(strtotime($expires_at) - time()))
-    : 120;   // 取得できない場合は 120 秒をデフォルトにする
+    : OSTIARIES_WAIT_TIME;
 
 _json_ok([
     'transaction_id'   => $transaction_id,
