@@ -85,7 +85,7 @@ class OstiariesAuth {
       this.#callbacks.onDialNumber(
         res.data.authentic_number,
         res.data.expires_at,
-        res.data.expires_in ?? 600
+        res.data.expires_in ?? 120
       );
 
       this.#schedulePoll();

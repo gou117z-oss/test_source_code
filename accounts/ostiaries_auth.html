@@ -164,6 +164,7 @@
           cancel: '/accounts/ostiaries_cancel.php',
         },
         customerNumbers: [phone],
+        waitTime: 120,
 
         onDialNumber(number, expiresAt, expiresIn) {
           const telUrl = 'tel:' + number.replace(/[^\d+]/g, '');

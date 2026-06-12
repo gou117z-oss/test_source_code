@@ -57,7 +57,7 @@ if (!ostiaries_is_success($start)) {
 $expires_at = $result['expires_at'] ?? null;
 $expires_in = $expires_at
     ? max(0, (int)(strtotime($expires_at) - time()))
-    : 600;   // 取得できない場合は 600 秒をデフォルトにする
+    : 120;   // 取得できない場合は 120 秒をデフォルトにする
 
 _json_ok([
     'transaction_id'   => $transaction_id,
