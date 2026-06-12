@@ -55,13 +55,10 @@ if (!ostiaries_is_success($start)) {
 }
 
 $expires_at = $result['expires_at'] ?? null;
-$expires_in = $expires_at
-    ? max(0, (int)(strtotime($expires_at) - time()))
-    : OSTIARIES_WAIT_TIME;
 
 _json_ok([
     'transaction_id'   => $transaction_id,
     'authentic_number' => $authentic_number,
     'expires_at'       => $expires_at,
-    'expires_in'       => $expires_in,
+    'expires_in'       => OSTIARIES_WAIT_TIME,
 ]);
