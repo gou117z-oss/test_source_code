@@ -81,6 +81,7 @@ class OstiariesAuth {
       if (!res) return;
 
       this.#transactionId = res.data.transaction_id;
+      console.log('[OstiariesAuth] start response data:', JSON.stringify(res.data));
       this.#callbacks.onDialNumber(res.data.dial_number);
 
       this.#schedulePoll();

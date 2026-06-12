@@ -44,7 +44,6 @@ if (!ostiaries_is_success($new_tx)) {
 
 $result         = ostiaries_get_result($new_tx);
 $transaction_id = $result['transaction_id'];
-$dial_number    = $result['dial_number'];
 
 $start = ostiaries_start_authentication(
     OSTIARIES_API_KEY, OSTIARIES_ACCESS_KEY,
@@ -54,7 +53,5 @@ if (!ostiaries_is_success($start)) {
     _json_api_error($start);
 }
 
-_json_ok([
-    'transaction_id' => $transaction_id,
-    'dial_number'    => $dial_number,
-]);
+// result の全フィールドをそのまま返す（フィールド名確認用）
+_json_ok($result);
