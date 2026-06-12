@@ -109,7 +109,7 @@
 
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <script src="../ostiaries_auth.js"></script>
   <script>
     const formArea     = document.getElementById('form-area');
@@ -177,9 +177,14 @@
           qrcodeDiv.innerHTML = '';
           if (SHOW_QRCODE) {
             try {
-              const canvas = document.createElement('canvas');
-              qrcodeDiv.appendChild(canvas);
-              QRCode.toCanvas(canvas, telUrl, { width: 160, margin: 2 });
+              new QRCode(qrcodeDiv, {
+                text:         telUrl,
+                width:        160,
+                height:       160,
+                colorDark:    '#000000',
+                colorLight:   '#ffffff',
+                correctLevel: QRCode.CorrectLevel.H,
+              });
               qrCaption.style.display = '';
             } catch (e) {
               console.warn('[QRCode]', e);
